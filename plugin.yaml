@@ -1,0 +1,10 @@
+name: "zed"                 # REQUIRED: the plugin command name, to be invoked under 'kubectl'
+shortDesc: "ZedApp editor"    # REQUIRED: the command short description, for help
+longDesc: ""                      # the command long description, for help
+example: ""                       # command example(s), for help
+command: "./zed"             # REQUIRED: the command, binary, or script to invoke when running the plugin
+flags:                            # flags supported by the plugin
+  - name: "key"                  # REQUIRED for each flag: flag name
+#    shorthand: "h"                # short version of the flag name
+    desc: "zed remote key"             # REQUIRED for each flag: flag description
+    defValue: ""           # default value of the flag

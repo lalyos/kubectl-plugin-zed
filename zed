@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#printenv 2>&1|grep KUBECTL_PLUGINS_LOCAL
+
+if [[ "$KUBECTL_PLUGINS_LOCAL_FLAG_KEY" ]] ; then
+    kubectl annotate svc zedserver -n zed key="$KUBECTL_PLUGINS_LOCAL_FLAG_KEY" --overwrite
+    exit
+fi
+
+if kubectl get svc zedserver -n zed -o name &>/dev/null; then
+    MINI=$(minikube ip)
+    PORT=$(kubectl get svc -n zed zedserver -o jsonpath='{.spec.ports[0].nodePort}')
+    echo " Zed remote server should point: ws://$MINI:$PORT"
+    if ! grep -q "ws://$MINI:$PORT"  ~/Library/Application\ Support/zed/config/user.json; then
+      echo "  zedserver is running, make sure to configure remote server"
+      echo "  Configuration / Preferences / Remote Editing / Zedrem server"
+      echo "  set it to: ws://$MINI:$PORT"
+    fi
+else
+  kubectl create ns zed &>/dev/null
+  kubectl run zedserver \
+      --namespace=zed \
+      --image=jbromley/zedrem-server \
+      --port=7337 \
+      --expose \
+      --service-overrides='{"spec":{"type":"NodePort"}}' \
+      -- /zedrem --server
+
+  echo zedrem installed EXITING
+  exit
+fi
+
+POD=${1:? POD name required}
+
+if kubectl exec $POD ls /zedrem &>/dev/null; then
+    echo "zedrem is already installed ..."
+else
+    echo "installing zedrem ..."
+    SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+    if ! [ -e $SCRIPTPATH/zedrem-linux  ] ; then
+	echo download static binary zedrem
+        curl -Lo $SCRIPTPATH/zedrem-linux https://github.com/lalyos/zedrem/releases/download/latest/zedrem-linux
+	chmod +x $SCRIPTPATH/zedrem-linux
+    fi
+    kubectl cp $SCRIPTPATH/zedrem-linux ${1:? POD name required}:/zedrem
+fi
+
+ZED_IP=$(kubectl get svc zedserver -n zed -o jsonpath='{.spec.clusterIP}')
+ZED_KEY=$(kubectl get svc zedserver -n zed -o jsonpath='{.metadata.annotations.key}')
+
+if ! [[ "$ZED_KEY" ]] ;then
+    echo "get zed remote key: Window / New / Open / Remote Folder " 
+    echo '---> kubectl plugin zed --key="$ZED_KEY" '
+
+fi
+
+set -x
+kubectl exec ${1:? POD name required} -- /zedrem -u ws://${ZED_IP}:7337 -key $ZED_KEY ${2}
