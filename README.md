@@ -1,10 +1,10 @@
 When working with Kubernetes, **how do you edit files** inside of a pod/container?
 I guess its **kubectl exec** and than use good old **vi**.
+Would you like to use a modern editor in chrome or as a standalone?
 
-Wold you like to use a modern editor in chrome or as a standalone?
 Lets use [ZedApp](http://zedapp.org).
 
-This kubectl plugin helps
+This kubectl plugin can open a container directory in zed editor as:
 
 ```
 kubectl plugin zed <PODNAME> /etc/
@@ -12,13 +12,37 @@ kubectl plugin zed <PODNAME> /etc/
 
 Note: right now this plugin relies on minikube.
 
-## Installing as ChromeApp
+## Installation
+
+There are 2 components:
+- the ZedApp editor itself
+- this kubectl plugin, which can drive the editor
+
+Installing this plugin is easy:
+```
+mkdir -p ~/.kube/plugins/
+git clone https://github.com/lalyos/kubectl-plugin-zed.git ~/.kube/plugins/zed
+```
+
+To validate that the plugin installation was succesfull run the plugin command:
+```
+$ kubectl plugin
+Runs a command-line plugin. 
+
+Available Commands:
+  zed         ZedApp editor
+```
+
+For installing the editor you have 2 options:
+- Use it as a Chrome App browser extensio
+- Install it as a standalone application (osx/linux/windows)
+
+## Installing Zed editor as ChromeApp
 
 Go to [ChromeStore](https://chrome.google.com/webstore/detail/zed-code-editor/pfmjnmeipppmcebplngmhfkleiinphhp)
 and click `Add To Chrome`
 
-
-## Installing as Desktop App
+## Installing Zed editor as Desktop App
 
 For OSX use brew
 ```
